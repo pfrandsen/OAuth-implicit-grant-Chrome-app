@@ -1,0 +1,442 @@
+<html>
+  
+  <head>
+    <title>OAuth2 Client Credentials</title>
+    <!-- Material Design Lite -->
+    <script src="mdl/material.min.js"></script>
+    <link rel="stylesheet" href="mdl/material.min.css"/>
+    <!-- Material Design icon font -->
+    <link rel="stylesheet" href="mdl/material-Icons.css"/>
+    <link rel="stylesheet" href="styles/main.css"/>
+    <script src="index.js"></script>
+  </head>
+  
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header">
+        <div class="mdl-layout__header-row">
+          <h3>
+            <span class="icon material-icons">lock_open</span>OAuth 2.0 Implicit Grant Request-Response
+            <span id="info" class="icon material-icons" style="cursor: pointer">info</span>
+          </h3>
+        </div>
+      </header>
+      <main class="mdl-layout__content" style="flex: 1 0 auto;">
+        <!-- h3><img src="img/oauth2.png"/>OAuth 2.0 Implicit Grant Request-Response <span class="icon material-icons" style="cursor: pointer">info</span></h3 -->
+        <div class="mdl-card mdl-shadow--4dp" style="width: 98%;margin: 20 auto;">
+          <div class="mdl-card__supporting-text">
+            <strong>Local redirect server</strong>
+            <table>
+              <tr>
+                <td>Port</td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="port" value="1337" size="6" />
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <button id="server-port" type="button" class="mdl-button">
+                    <span class="icon material-icons">sync</span>
+                  </button>
+                  <div class="mdl-tooltip" data-mdl-for="server-port">Update redirect uri</div>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                   <input type="text" id="redirect-uri" value="" size="50" />
+                   (Redirect URI)
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="mdl-card__supporting-text">
+            <strong>Authorization parameters</strong>
+            <table>
+              <tr>
+                <td>Response type</td>
+                <td>&nbsp;</td>
+                <td>
+                  token
+                </td>
+              </tr>
+              <tr>
+                <td>Client id</td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="client_id" value="" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>Auth type</td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="auth_type" value="" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>Scope</td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="scope" value="" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>State</td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="state" value="" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>Authorization endpoint</td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="auth-uri" value="" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <button id="login-button" type="button" class="mdl-button"><span class="icon material-icons">person</span><span class="icon material-icons">check</span></button>
+                  <div class="mdl-tooltip" data-mdl-for="login-button">Login</div>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <span id="message"></span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="mdl-card mdl-shadow--4dp" style="width: 98%;margin: 20 auto;">
+          
+          <webview id="the-view" src="init.html" partition="trusted" height="300px" style="width: 100%;"></webview>
+          <!-- webview id="theview" src="https://security.services.nykredit.dk/security/oauth2/authorize?response_type=token&auth_type=auth.pre_auth&client_id=687b885f-0a7f-49d6-adf4-2dc91f7769d0&redirect_uri=https%3A%2F%2Fssm.nykredit.it%2Fcb.html&state=687b885f-0a7f-49d6-adf4-2dc91f7769d0.c8b29879-2547-4ec0-b207-fb5b8212e681" partition="trusted" height="300px" style="width: 100%;"></webview -->
+        </div>
+        <!-- dialogs -->
+        <dialog id="info-dialog" class="mdl-dialog" style="min-width: 80%">
+          <h3 class="mdl-dialog__title">OAuth2 Client Credentials</h3>
+          <div class="mdl-dialog__content">
+            <p>The purpose of this application is to allow you to retrieve an OAuth 2.0 bearer token using the implicit grant flow,
+              <em>without having to develop a client application</em>.
+              <br/>The application starts an embedded web server that resonds to the redirect sent from the authorization server.
+              <br/>
+              <strong>Note:</strong>This application is only useable in a test or development environment where the authorization server accepts
+              arbitrary redirect urls, or in an environment where the redirect url is explicitly registered on the server.</p>
+              <p>The token can be used to test API's through applications such as Postman or SoapUI:
+                <ul>
+                  <li><img src="img/postman.ico"/> Postman - see <a target="_blank" href="https://www.getpostman.com/">website</a>
+                    or <a target="_blank" href="https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop">Chrome web store</a></li>
+                </ul>
+                <ul>
+                  <li><img src="img/soapui.ico"/> SoapUI - see <a target="_blank" href="https://www.soapui.org/">website</a></li>
+                </ul>
+              </p>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button id="info-dialog-close" type="button" class="mdl-button">Close</button>
+          </div>
+        </dialog>
+        <dialog id="help-dialog" class="mdl-dialog" style="min-width: 80%">
+          <h3 class="mdl-dialog__title">Usage</h3>
+          <div class="mdl-dialog__content">
+            <p>help info goes here.</p>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button id="help-dialog-close" type="button" class="mdl-button">Close</button>
+          </div>
+        </dialog>
+        <dialog id="cca-dialog" class="mdl-dialog" style="min-width: 80%">
+          <h3 class="mdl-dialog__title">Client credential attributes</h3>
+          <div class="mdl-dialog__content">
+            <table>
+              <tr>
+                <td colspan="3">
+                  <strong>Note:</strong>The OAuth 2.0 Authorization Framework is descibed in
+                  <a target="_blank" href="https://tools.ietf.org/html/rfc6749">rfc6749</a>
+                </td>
+              </tr>
+              <tr>
+                <td colspan="3">
+                  <h4>Request attributes (query parameters)</h4>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>response_type</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Required. Must be set to
+                  <strong>token</strong>.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>client_id</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Required. The client identifier - registered on authorization server.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>redirect_uri</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>The redirect URI that the authorization server will send to the client after successfull login.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>scope</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Optional. See
+                  <a target=_blank href="https://tools.ietf.org/html/rfc6749#section-3.3">rfc6749 section 3.3</a>.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>state</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Optional. A "per request" value that is passed back to the client (via redirect uri) along with the authorization code (bearer
+                  token).</td>
+              </tr>
+              <tr>
+                <td colspan="3">
+                  <h4>Response attributes (fragment parameters)</h4>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>access_token</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Required. The access token issued by the authorization server.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>token_type</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Required. Typically "Bearer", see
+                  <a target=_blank href="https://tools.ietf.org/html/rfc6749#section-7.1">rfc6749 section 7.1</a.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>expires_in</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>Recommended. The lifetime in seconds of the access token.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>scope</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>See
+                  <a target=_blank href="https://tools.ietf.org/html/rfc6749#section-3.3">rfc6749 section 3.3</a>.</td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>state</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>If the client sent a state value in the authorization request then the state attribute must be present and the value must
+                  be the same as the client provided.</td>
+              </tr>
+            </table>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button id="cca-dialog-close" type="button" class="mdl-button">Close</button>
+          </div>
+        </dialog>
+        <dialog id="about-dialog" class="mdl-dialog" style="min-width: 50%">
+          <h3 class="mdl-dialog__title">About</h3>
+          <div class="mdl-dialog__content">
+            <table>
+              <tr>
+                <td><strong>Author</strong></td>
+                <td>&nbsp;</td>
+                <td>Peter Frandsen</td>
+              </tr>
+              <tr>
+                <td><strong>Github</strong></td>
+                <td>&nbsp;</td>
+                <td><a target="_blank" href="https://github.com/pfrandsen">https://github.com/pfrandsen</a></td>
+              </tr>
+              <tr>
+                <td><strong>Based on</strong></td>
+                <td>&nbsp;</td>
+                <td>Chrome web server sample app, see
+                <a target="_blank" href="https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/webserver">github</a></td>
+              </tr>
+              <tr>
+                <td><strong>License</strong></td>
+                <td>&nbsp;</td>
+                <td><a target="_blank" href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a></td>
+              </tr>
+            </table>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button id="about-dialog-close" type="button" class="mdl-button">Close</button>
+          </div>
+        </dialog>
+        <dialog id="log-dialog" class="mdl-dialog" style="min-width: 80%">
+          <h3 class="mdl-dialog__title">Latest log entries</h3>
+          <div class="mdl-dialog__content">
+            <input type="text" id="result-token" />
+            <table>
+              <tr>
+                <td>
+                  <strong>access_token</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="result-access_token" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>token_type</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="result-token_type" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>expires_in</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="result-expires_in" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>scope</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="result-scope" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>state</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="result-state" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>all</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="result-all" size="50" />
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button id="log-dialog-close" type="button" class="mdl-button">Close</button>
+          </div>
+        </dialog>
+        <dialog id="inspect-dialog" class="mdl-dialog" style="min-width: 80%">
+          <h3 class="mdl-dialog__title">OAuth2 Response</h3>
+          <div class="mdl-dialog__content">
+            <!-- input type="text" id="result-token" / -->
+            <table>
+              <tr>
+                <td>
+                  <strong>access_token</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="inspect-access_token" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>token_type</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="inspect-token_type" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>expires_in</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="inspect-expires_in" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>scope</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="inspect-scope" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>state</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="inspect-state" size="50" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>all</strong>
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                  <input type="text" id="inspect-all" size="50" />
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button id="inspect-dialog-close" type="button" class="mdl-button">Close</button>
+          </div>
+        </dialog>
+      </main>
+      <footer class="mdl-mini-footer">
+        <div class="mdl-mini-footer__left-section">
+          <ul class="mdl-mini-footer__link-list">
+            <li>
+              <a href="#" id="help">Help</a>
+            </li>
+            <li>
+              <a href="#" id="cca">Client credential attributes</a>
+            </li>
+            <li>
+              <a href="#" id="log">Log</a>
+            </li>
+            <li>
+              <a href="#" id="inspect">Inspect</a>
+            </li>
+          </ul>
+        </div>
+        <div class="mdl-mini-footer__right-section">
+          <ul class="mdl-mini-footer__link-list">
+            <li>
+              <a target="_blank" href="https://github.com/pfrandsen/OAuth-implicit-grant-Chrome-app">Source</a>
+            </li>
+            <li>
+              <a href="#" id="about">About</a>
+            </li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+  </body>
+
+</html>
