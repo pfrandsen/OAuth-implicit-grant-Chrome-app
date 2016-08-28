@@ -4,7 +4,7 @@
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "A generic client application for retrieving an OAuth 2.0 bearer token using the implicit grant flow. For development and test purposes.",
+    "message": "A generic client application for retrieving an OAuth 2.0 bearer token using the implicit grant flow.",
     "description": "The description of the application"
   }
 }

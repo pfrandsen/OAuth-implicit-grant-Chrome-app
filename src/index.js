@@ -13,7 +13,7 @@ onload = function () {
     "    <link rel='stylesheet' href='https://code.getmdl.io/1.2.0/material.min.css'/>",
     "  </head>",
     "  <body>",
-    "    <h4>OAuth2 Response - take 5</h4>",
+    "    <h4>OAuth2 Response</h4>",
     "    <table>",
     "      <tr>",
     "        <td><strong>access_token</strong></td><td>&nbsp;</td><td><input type= 'text' id= 'result-access_token' size= '50' /></td>",
@@ -171,9 +171,8 @@ onload = function () {
       keyVal.forEach(function (v) {
         setValue(v);
       });
-      document.getElementById('result-access_token').select();
+      document.getElementById('inspect-access_token').select();
     } else {
-      // log?
       console.log("no values")
     }
     console.log(document.getElementById('the-view').src);
