@@ -60,31 +60,33 @@ onload = function () {
   ].join("\n");
 
   function getRedirect() {
-    return "http://localhost:" + listenPort + "callback.html";
+    return "http://localhost:" + listenPort + "/callback.html";
   }
 
   function updateRedirect() {
-    document.getElementById("redirect-uri").value = getRedirect();
+    document.getElementById("redirect_uri").value = getRedirect();
+  }
+
+  // get value from text edit field
+  function getTextValue(key) {
+    var e = document.getElementById(key);
+    if (e) {
+      return e.value.trim();
+    }
+    return "";
   }
 
   function getLoginURI() {
     var uri;
-    function getVal(key) {
-      var e = document.getElementById(key);
-      if (e) {
-        return e.value.trim();
-      }
-      return "";
-    }
     function addParam(key) {
-      var val = getVal(key);
+      var val = getTextValue(key);
       if (val !== "") {
         uri += "&" + key + "=" + val;
       }
     }
-    var clientId = getVal("client_id");
-    var redirect = getVal("redirect-uri");
-    var auth = getVal("auth-uri");
+    var clientId = getTextValue("client_id");
+    var redirect = getTextValue("redirect_uri");
+    var auth = getTextValue("auth_uri");
     if (clientId === "" || redirect === "" || auth === "") {
       return "";
     }
@@ -97,14 +99,43 @@ onload = function () {
   }
 
   var port = document.getElementById("port");
+
+  document.getElementById("server_port").onclick = function () {
+    var current = listenPort;
+    var p = getPortValue(port.value);
+    if (p != current) {
+      server.stop();
+      listenPort = p;
+      updateRedirect();
+      server.start();
+    }
+
+  }
+
   document.getElementById("login-button").onclick = function () {
     document.getElementById("message").innerHTML = "";
-    console.log(document.getElementById("redirect-uri").value);
+    console.log(document.getElementById("redirect_uri").value);
     var uri = getLoginURI();
     if (uri === "") {
-      uri
       document.getElementById("message").innerHTML = "Redirect URI, client id, and authorization endpoint must be set";
     } else {
+
+      var store = {
+        "port": getTextValue("port"),
+        "client_id": getTextValue("client_id"),
+        "redirect_uri": getTextValue("redirect_uri"),
+        "auth_uri": getTextValue("auth_uri"),
+        "auth_type": getTextValue("auth_type"),
+        "scope": getTextValue("scope"),
+        "state": getTextValue("state")
+      };
+
+      console.log(store);
+      var jsonVal = JSON.stringify(store);
+      console.log(jsonVal);
+      chrome.storage.local.set({ 'parameters': jsonVal }, function () {
+        console.log('Settings saved');
+      });
       console.log(uri);
       document.getElementById("the-view").src = uri;
     }
@@ -218,6 +249,9 @@ onload = function () {
         if (chrome.runtime.lastError) {
           console.warn("chrome.sockets.tcpServer.close:", chrome.runtime.lastError);
         }
+
+        //destroySocketById(serverSocketId);
+        //serverSocketId = null;
       });
     }
     tcpServer.onAccept.removeListener(onAccept);
@@ -288,13 +322,15 @@ onload = function () {
     var header = getResponseHeader(response);
     var body = stringToUint8Array(response);
     logEntry("Sending fixed response - request uri " + uri);
-    writeResponse(socketId, header, body, false);
+    writeResponse(socketId, header, body, true);
 
   };
 
   server.stop = function () {
     logEntry("Stopping server, port " + listenPort);
     closeServerSocket();
+    //destroySocketById(serverSocketId);
+    //serverSocketId = null;
   };
 
   server.start = function () {
@@ -302,9 +338,8 @@ onload = function () {
     tcpServer.create({}, function (socketInfo) {
       serverSocketId = socketInfo.socketId;
 
-      //tcpServer.listen(serverSocketId, hosts.value, parseInt(port.value, 10), 50, function(result) {
       tcpServer.listen(serverSocketId, "127.0.0.1", listenPort, 50, function (result) {
-        console.log("LISTENING:", result);
+        console.log("LISTENING (" + listenPort + ")", result);
 
         tcpServer.onAccept.addListener(onAccept);
         tcpSocket.onReceive.addListener(onReceive);
@@ -312,6 +347,63 @@ onload = function () {
     });
   };
 
+  // set default value
+  port.value = listenPort;
   updateRedirect();
   server.start();
+
+  // load parameters if set previously
+  chrome.storage.local.get('parameters', function (v) {
+    function setVal(key, val) {
+      if (val && val.length > 0) {
+        console.log(key + " ... " + val);
+        var element = document.getElementById(key);
+        if (element) {
+          element.value = val;
+        }
+      }
+    }
+    console.log("reading stored parameters");
+    console.log(v)
+    if (v) {
+      var values = JSON.parse(v.parameters);
+      console.log(values);
+      console.log(values.port);
+      setVal("auth_type", values.auth_type);
+      setVal("auth_uri", values.auth_uri);
+      setVal("client_id", values.client_id);
+      setVal("redirect_uri", values.redirect_uri);
+      setVal("scope", values.scope);
+      setVal("state", values.state);
+
+      console.log("-- port " + values.port);
+      if (values.port) {
+        var p = getPortValue(values.port);
+        if (p != listenPort) {
+          console.log(".. port " + p);
+          server.stop();
+          listenPort = p;
+          console.log("... port " + listenPort);
+          setVal("port", "" + listenPort);
+          server.start();
+        }
+      }
+    }
+  });
+
+  function getPortValue(str) {
+    try {
+      var p = parseInt(str, 10);
+      if (p >= 1024 && p < 65536) {
+        return p;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    return 1337;
+  }
+
+  chrome.app.window.onClosed.addListener(function () {
+    server.stop();
+  });
 };
