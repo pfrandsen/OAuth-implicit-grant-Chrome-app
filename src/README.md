@@ -13,6 +13,7 @@ OAuth2 implicit grant
 * [Runtime](https://developer.chrome.com/apps/app_runtime)
 * [Window](https://developer.chrome.com/apps/app_window)
 * [WebView](https://developer.chrome.com/apps/tags/webview)
+* [Local storage](https://developer.chrome.com/apps/storage)
      
 ## Screenshot
 ![screenshot](assets/screenshot_1280.png)

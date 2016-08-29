@@ -25,40 +25,35 @@
       <!-- h3><img src="img/oauth2.png"/>OAuth 2.0 Implicit Grant Request-Response <span class="icon material-icons" style="cursor: pointer">info</span></h3 -->
       <div class="mdl-card mdl-shadow--4dp" style="width: 98%;margin: 20 auto;">
         <div class="mdl-card__supporting-text">
-          <strong>Local redirect server</strong>
+          
           <table>
             <tr>
-              <td>Port</td>
-              <td>&nbsp;</td>
-              <td>
-                <input type="text" id="port" size="6" />
-              </td>
-              <td>&nbsp;</td>
-              <td>
-                <button id="server_port" type="button" class="mdl-button">
+              <td colspan="3"><strong>Local redirect server</strong></td>
+            </tr>
+            <tr>
+              <td>Port&nbsp;<input type="text" id="port" size="6" />&nbsp;<button id="server_port" type="button" class="mdl-button">
                     <span class="icon material-icons">sync</span>
-                  </button>
-                <div class="mdl-tooltip" data-mdl-for="server_port">Update redirect uri</div>
-              </td>
+                  </button></td>
               <td>&nbsp;</td>
-              <td>
-                <input type="text" id="redirect_uri" value="" size="50" /> (Redirect URI)
-              </td>
-            </tr>
-          </table>
-        </div>
-        <div class="mdl-card__supporting-text">
-          <strong>Authorization parameters</strong>
-          <table>
-            <tr>
-              <td>Response type</td>
-              <td>&nbsp;</td>
-              <td>
-                token
-              </td>
+              <td><em>Listening @ <span id="listen_at"></span></em></td>
             </tr>
             <tr>
-              <td>Client id</td>
+              <td>Redirect URI&sstarf;</td>
+              <td>&nbsp;</td>
+              <td><input type="text" id="redirect_uri" value="" size="50" /></td>
+            </tr>
+            <tr style="height: 0.3em"></tr>
+            <tr>
+              <td colspan="3"><strong>Authorization parameters</strong></td>
+            </tr>
+            <tr style="height: 0.2em"></tr>
+            <tr>
+              <td>Response type&sstarf;</td>
+              <td>&nbsp;</td>
+              <td><em>token</em></td>
+            </tr>
+            <tr>
+              <td>Client id&sstarf;</td>
               <td>&nbsp;</td>
               <td>
                 <input type="text" id="client_id" value="" size="50" />
@@ -86,7 +81,7 @@
               </td>
             </tr>
             <tr>
-              <td>Authorization endpoint</td>
+              <td>Authorization endpoint&sstarf;</td>
               <td>&nbsp;</td>
               <td>
                 <input type="text" id="auth_uri" value="" size="50" />
@@ -95,25 +90,33 @@
             <tr>
               <td>
                 <button id="login-button" type="button" class="mdl-button"><span class="icon material-icons">person</span><span class="icon material-icons">check</span></button>
-                <div class="mdl-tooltip" data-mdl-for="login-button">Login</div>
+                <div class="mdl-tooltip" data-mdl-for="login-button">Start login flow</div>
               </td>
               <td>&nbsp;</td>
               <td>
-                <span id="message"></span>
+                 Profile&nbsp;<input type="text" id="profile_name" value="" size="15" />
+                 <button id="profile-save-button" type="button" class="mdl-button">Save</button>
+                 <button id="profile-load-button" type="button" class="mdl-button">Load</button>
+                 <div class="mdl-tooltip" data-mdl-for="profile_name">Profile name</div>
+                 <div class="mdl-tooltip" data-mdl-for="profile-save-button">Save profile</div>
+                 <div class="mdl-tooltip" data-mdl-for="profile-load-button">Load profile</div>
               </td>
             </tr>
+            <tr style="height: 0.2em"></tr>
+            <tr><td colspan="3"><em><span id="message" style="color: red"></span></em></td></tr>
           </table>
         </div>
       </div>
       <div class="mdl-card mdl-shadow--4dp" style="width: 98%;margin: 20 auto;">
-
-        <webview id="the-view" src="init.html" partition="trusted" height="300px" style="width: 100%;"></webview>
+        <webview id="the-view" src="init.html" partition="trusted" height="340px" style="width: 100%;"></webview>
       </div>
+      <!-- ======= -->
       <!-- dialogs -->
+      <!-- ======= -->
       <dialog id="info-dialog" class="mdl-dialog" style="min-width: 80%">
-        <h3 class="mdl-dialog__title">OAuth2 Client Credentials</h3>
+        <h3 class="mdl-dialog__title">OAuth2 access token</h3>
         <div class="mdl-dialog__content">
-          <p>The purpose of this application is to allow you to retrieve an OAuth 2.0 bearer token using the implicit grant
+          <p>The purpose of this application is to allow you to retrieve an OAuth 2.0 access token (typically bearer) using the implicit grant
             flow,
             <em>without having to develop a client application</em>.</p>
           <p>The application starts an embedded web server that resonds to the redirect sent from the authorization server (when

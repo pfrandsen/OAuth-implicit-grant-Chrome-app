@@ -5,6 +5,7 @@ onload = function () {
   var tcpServer = chrome.sockets.tcpServer;
   var tcpSocket = chrome.sockets.tcp;
   var serverSocketId = null;
+  var webview = document.getElementById("the-view");
 
   var response = [
     "<html>",
@@ -59,12 +60,9 @@ onload = function () {
     "</html>"
   ].join("\n");
 
-  function getRedirect() {
-    return "http://localhost:" + listenPort + "/callback.html";
-  }
-
   function updateRedirect() {
-    document.getElementById("redirect_uri").value = getRedirect();
+    //document.getElementById("redirect_uri").value = getRedirect();
+    document.getElementById("listen_at").innerHTML = "http://localhost:" + listenPort + "/*";
   }
 
   // get value from text edit field
@@ -112,6 +110,94 @@ onload = function () {
 
   }
 
+  function getdProfileName(name) {
+    return "oauth_ig_" + name;
+  }
+
+  function saveProfile(name) {
+    var pName = getdProfileName(name);
+    var prop = {};
+    var store = {
+      "port": getTextValue("port"),
+      "client_id": getTextValue("client_id"),
+      "redirect_uri": getTextValue("redirect_uri"),
+      "auth_uri": getTextValue("auth_uri"),
+      "auth_type": getTextValue("auth_type"),
+      "scope": getTextValue("scope"),
+      "state": getTextValue("state"),
+      "profile_name": getTextValue("profile_name")
+    };
+    var jsonVal = JSON.stringify(store);
+    prop[pName] = jsonVal;
+    //      console.log(prop);
+    //      console.log({ 'latest': jsonVal });
+    chrome.storage.local.set(prop, function () {
+      console.log('Settings saved - ' + name);
+    });
+  }
+
+  function loadProfile(name) {
+    var pName = getdProfileName(name);
+    chrome.storage.local.get(pName, function (v) {
+      function setVal(key, val) {
+        if (val && val.length > 0) {
+          var element = document.getElementById(key);
+          if (element) {
+            element.value = val;
+          }
+        }
+      }
+      console.log("reading stored profile '" + name + "'");
+      if (v) {
+        var values = JSON.parse(v[pName]);
+        setVal("auth_type", values.auth_type);
+        setVal("auth_uri", values.auth_uri);
+        setVal("client_id", values.client_id);
+        setVal("redirect_uri", values.redirect_uri);
+        setVal("scope", values.scope);
+        setVal("state", values.state);
+        setVal("profile_name", values.profile_name);
+        if (values.port) {
+          var p = getPortValue(values.port);
+          if (p != listenPort) {
+            server.stop();
+            listenPort = p;
+            setVal("port", "" + listenPort);
+            updateRedirect();
+            server.start();
+          }
+        }
+      }
+    });
+
+  }
+
+  function getPortValue(str) {
+    try {
+      var p = parseInt(str, 10);
+      if (p >= 1024 && p < 65536) {
+        return p;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    return 1337;
+  }
+
+  document.getElementById("profile-save-button").onclick = function () {
+    var name = getTextValue("profile_name").trim();
+    if (name.length > 0) {
+      saveProfile(name);
+    }
+  }
+
+  document.getElementById("profile-load-button").onclick = function () {
+    var name = getTextValue("profile_name").trim();
+    if (name.length > 0) {
+      loadProfile(name);
+    }
+  }
+
   document.getElementById("login-button").onclick = function () {
     document.getElementById("message").innerHTML = "";
     console.log(document.getElementById("redirect_uri").value);
@@ -119,23 +205,7 @@ onload = function () {
     if (uri === "") {
       document.getElementById("message").innerHTML = "Redirect URI, client id, and authorization endpoint must be set";
     } else {
-
-      var store = {
-        "port": getTextValue("port"),
-        "client_id": getTextValue("client_id"),
-        "redirect_uri": getTextValue("redirect_uri"),
-        "auth_uri": getTextValue("auth_uri"),
-        "auth_type": getTextValue("auth_type"),
-        "scope": getTextValue("scope"),
-        "state": getTextValue("state")
-      };
-
-      console.log(store);
-      var jsonVal = JSON.stringify(store);
-      console.log(jsonVal);
-      chrome.storage.local.set({ 'parameters': jsonVal }, function () {
-        console.log('Settings saved');
-      });
+      saveProfile('latest');
       console.log(uri);
       document.getElementById("the-view").src = uri;
     }
@@ -210,6 +280,18 @@ onload = function () {
   setupDialogHandler('cca');
   setupDialogHandler('log');
   setupDialogHandler('inspect', initializeInspect);
+
+  // show oauth attributes when webview loads uri with access_token value in fragment
+  webview.addEventListener("contentload", function () {
+    try {
+      var arr = webview.src.split('#');
+      if (arr.length > 1) {
+        if (arr[1].includes("access_token")) {
+          document.getElementById('inspect').click();
+        }
+      }
+    } catch (e) { }
+  });
 
   var stringToUint8Array = function (string) {
     var buffer = new ArrayBuffer(string.length);
@@ -346,61 +428,12 @@ onload = function () {
     });
   };
 
+  updateRedirect();
   // set default value
   port.value = listenPort;
-  updateRedirect();
   server.start();
-
   // load parameters if set previously
-  chrome.storage.local.get('parameters', function (v) {
-    function setVal(key, val) {
-      if (val && val.length > 0) {
-        console.log(key + " ... " + val);
-        var element = document.getElementById(key);
-        if (element) {
-          element.value = val;
-        }
-      }
-    }
-    console.log("reading stored parameters");
-    console.log(v)
-    if (v) {
-      var values = JSON.parse(v.parameters);
-      console.log(values);
-      console.log(values.port);
-      setVal("auth_type", values.auth_type);
-      setVal("auth_uri", values.auth_uri);
-      setVal("client_id", values.client_id);
-      setVal("redirect_uri", values.redirect_uri);
-      setVal("scope", values.scope);
-      setVal("state", values.state);
-
-      console.log("-- port " + values.port);
-      if (values.port) {
-        var p = getPortValue(values.port);
-        if (p != listenPort) {
-          console.log(".. port " + p);
-          server.stop();
-          listenPort = p;
-          console.log("... port " + listenPort);
-          setVal("port", "" + listenPort);
-          server.start();
-        }
-      }
-    }
-  });
-
-  function getPortValue(str) {
-    try {
-      var p = parseInt(str, 10);
-      if (p >= 1024 && p < 65536) {
-        return p;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    return 1337;
-  }
+  loadProfile('latest');
 
   chrome.app.window.onClosed.addListener(function () {
     server.stop();
