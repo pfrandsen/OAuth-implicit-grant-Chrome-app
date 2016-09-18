@@ -24,6 +24,9 @@
     <main class="mdl-layout__content" style="flex: 1 0 auto;">
       <!-- h3><img src="img/oauth2.png"/>OAuth 2.0 Implicit Grant Request-Response <span class="icon material-icons" style="cursor: pointer">info</span></h3 -->
       <div class="mdl-card mdl-shadow--4dp" style="width: 98%;margin: 20 auto;">
+        <div style="position: absolute; top: 0; right: 0;">
+            <img src="img/oauth2-logo.png" style="padding-right: 5px; padding-top: 5px;" />
+        </div>
         <div class="mdl-card__supporting-text">
           
           <table>
@@ -33,14 +36,21 @@
             <tr>
               <td>Port&nbsp;<input type="text" id="port" size="6" />&nbsp;<button id="server_port" type="button" class="mdl-button">
                     <span class="icon material-icons">sync</span>
-                  </button></td>
+                  </button>
+                <div class="mdl-tooltip" data-mdl-for="server_port">Restart built-in web server on given port</div>
+                  </td>
               <td>&nbsp;</td>
               <td><em>Listening @ <span id="listen_at"></span></em></td>
             </tr>
             <tr>
               <td>Redirect URI&sstarf;</td>
               <td>&nbsp;</td>
-              <td><input type="text" id="redirect_uri" value="" size="50" /></td>
+              <td><input type="text" id="redirect_uri" value="" size="60" /></td>
+              <td>&nbsp;</td>
+              <td>
+                <button id="set-local-redirect" type="button" class="mdl-button"><span class="icon material-icons">replay</span></button>
+                <div class="mdl-tooltip" data-mdl-for="set-local-redirect">Set redirect to built-in web server</div>
+              </td>
             </tr>
             <tr style="height: 0.3em"></tr>
             <tr>
@@ -50,41 +60,43 @@
             <tr>
               <td>Response type&sstarf;</td>
               <td>&nbsp;</td>
-              <td><em>token</em></td>
+              <td>
+                <input type="text" id="response_type" value="token" size="60" />
+              </td>
             </tr>
             <tr>
               <td>Client id&sstarf;</td>
               <td>&nbsp;</td>
               <td>
-                <input type="text" id="client_id" value="" size="50" />
+                <input type="text" id="client_id" value="" size="60" />
               </td>
             </tr>
             <tr>
               <td>Auth type</td>
               <td>&nbsp;</td>
               <td>
-                <input type="text" id="auth_type" value="" size="50" />
+                <input type="text" id="auth_type" value="" size="60" />
               </td>
             </tr>
             <tr>
               <td>Scope</td>
               <td>&nbsp;</td>
               <td>
-                <input type="text" id="scope" value="" size="50" />
+                <input type="text" id="scope" value="" size="60" />
               </td>
             </tr>
             <tr>
               <td>State</td>
               <td>&nbsp;</td>
               <td>
-                <input type="text" id="state" value="" size="50" />
+                <input type="text" id="state" value="" size="60" />
               </td>
             </tr>
             <tr>
               <td>Authorization endpoint&sstarf;</td>
               <td>&nbsp;</td>
               <td>
-                <input type="text" id="auth_uri" value="" size="50" />
+                <input type="text" id="auth_uri" value="" size="60" />
               </td>
             </tr>
             <tr>
@@ -97,9 +109,18 @@
                  Profile&nbsp;<input type="text" id="profile_name" value="" size="15" />
                  <button id="profile-save-button" type="button" class="mdl-button">Save</button>
                  <button id="profile-load-button" type="button" class="mdl-button">Load</button>
+                 &nbsp;<select id="profile-list-select"></select>
+                 &nbsp;<button id="profile-delete-button" type="button" class="mdl-button">Delete</button>
                  <div class="mdl-tooltip" data-mdl-for="profile_name">Profile name</div>
                  <div class="mdl-tooltip" data-mdl-for="profile-save-button">Save profile</div>
                  <div class="mdl-tooltip" data-mdl-for="profile-load-button">Load profile</div>
+                 <div class="mdl-tooltip" data-mdl-for="profile-list-select">Select and load profile</div>
+                 <div class="mdl-tooltip" data-mdl-for="profile-delete-button">Delete profile</div>
+              </td>
+              <td>&nbsp;</td>
+              <td>
+                <button id="reset-webview" type="button" class="mdl-button"><span class="icon material-icons">redo</span></button>
+                <div class="mdl-tooltip" data-mdl-for="reset-webview">Reset login view</div>
               </td>
             </tr>
             <tr style="height: 0.2em"></tr>

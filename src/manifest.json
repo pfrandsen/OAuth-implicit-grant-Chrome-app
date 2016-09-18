@@ -1,6 +1,6 @@
 {
   "name": "__MSG_appName__",
-  "version": "0.7.5",
+  "version": "0.7.10",
   "manifest_version": 2,
   "description": "__MSG_appDescription__",
   "icons": {
@@ -18,7 +18,7 @@
     "partitions": [
       {
         "name": "trusted",
-        "accessible_resources": ["init.html", "img/oauth2.png"]
+        "accessible_resources": ["init.html", "img/oauth2.png", "img/oauth2-logo.png", "img/rckt.png"]
       }
     ]
   },

@@ -61,8 +61,11 @@ onload = function () {
   ].join("\n");
 
   function updateRedirect() {
-    //document.getElementById("redirect_uri").value = getRedirect();
     document.getElementById("listen_at").innerHTML = "http://localhost:" + listenPort + "/*";
+  }
+
+  document.getElementById("set-local-redirect").onclick = function () {
+    document.getElementById("redirect_uri").value = "http://localhost:" + listenPort + "/redirect.html";
   }
 
   // get value from text edit field
@@ -74,6 +77,14 @@ onload = function () {
     return "";
   }
 
+  function setTextValue(key, val) {
+    var e = document.getElementById(key);
+    if (e) {
+     e.value = val.trim();
+    }
+  }
+
+
   function getLoginURI() {
     var uri;
     function addParam(key) {
@@ -82,13 +93,14 @@ onload = function () {
         uri += "&" + key + "=" + val;
       }
     }
+    var responseType = getTextValue("response_type");
     var clientId = getTextValue("client_id");
     var redirect = getTextValue("redirect_uri");
     var auth = getTextValue("auth_uri");
-    if (clientId === "" || redirect === "" || auth === "") {
+    if (responseType === "" || clientId === "" || redirect === "" || auth === "") {
       return "";
     }
-    uri = auth + "?response_type=token&client_id=" + clientId
+    uri = auth + "?response_type=" + responseType + "&client_id=" + clientId
       + "&redirect_uri=" + encodeURIComponent(redirect);
     addParam("auth_type");
     addParam("scope");
@@ -107,11 +119,25 @@ onload = function () {
       updateRedirect();
       server.start();
     }
+  }
 
+  function getdProfileNamePrefix() {
+    return "oauth_ig_";
   }
 
   function getdProfileName(name) {
-    return "oauth_ig_" + name;
+    return getdProfileNamePrefix() + name;
+  }
+
+  function clear() {
+      setTextValue("response_type", "token");
+      setTextValue("client_id", "");
+      setTextValue("redirect_uri", "");
+      setTextValue("auth_uri", "");
+      setTextValue("auth_type", "");
+      setTextValue("scope", "");
+      setTextValue("state", "");
+      setTextValue("profile_name", "");
   }
 
   function saveProfile(name) {
@@ -119,6 +145,7 @@ onload = function () {
     var prop = {};
     var store = {
       "port": getTextValue("port"),
+      "response_type": getTextValue("response_type"),
       "client_id": getTextValue("client_id"),
       "redirect_uri": getTextValue("redirect_uri"),
       "auth_uri": getTextValue("auth_uri"),
@@ -129,8 +156,6 @@ onload = function () {
     };
     var jsonVal = JSON.stringify(store);
     prop[pName] = jsonVal;
-    //      console.log(prop);
-    //      console.log({ 'latest': jsonVal });
     chrome.storage.local.set(prop, function () {
       console.log('Settings saved - ' + name);
     });
@@ -152,6 +177,11 @@ onload = function () {
         var values = JSON.parse(v[pName]);
         setVal("auth_type", values.auth_type);
         setVal("auth_uri", values.auth_uri);
+        if (values.hasOwnProperty("response_type")) {
+          setVal("response_type", values.response_type);
+        } else {
+          setVal("response_type", "token");
+        }
         setVal("client_id", values.client_id);
         setVal("redirect_uri", values.redirect_uri);
         setVal("scope", values.scope);
@@ -172,6 +202,40 @@ onload = function () {
 
   }
 
+  function deleteProfile(name) {
+    var pName = getdProfileName(name);
+    chrome.storage.local.remove(pName, function () {
+      updateProfileList();
+    });
+  }
+
+  function updateProfileList() {
+    var sel = document.getElementById("profile-list-select");
+    while(sel.item(0) !== null) {
+      sel.remove(0);
+    }
+    chrome.storage.local.get(null, function (items) {
+      if (items) {
+        var keys = Object.keys(items);
+        keys = keys.filter(function (key) {
+          return key.startsWith(getdProfileNamePrefix());
+        });
+        keys = keys.map(function (key) {
+          return key.replace(getdProfileNamePrefix(), '');
+        });
+        keys.sort();
+        keys.unshift("");
+
+        keys.forEach(function (element, index, array) {
+          var opt = document.createElement("option");
+          opt.value = element;
+          opt.text = element;
+          sel.add(opt, null);
+        }); 
+      }
+    });
+  }
+
   function getPortValue(str) {
     try {
       var p = parseInt(str, 10);
@@ -188,13 +252,40 @@ onload = function () {
     var name = getTextValue("profile_name").trim();
     if (name.length > 0) {
       saveProfile(name);
+      updateProfileList();
     }
+  }
+
+  document.getElementById("profile-delete-button").onclick = function () {
+    var name = getTextValue("profile_name").trim();
+    if (name.length > 0) {
+      deleteProfile(name);
+    }
+  }
+
+  document.getElementById("profile-list-select").onchange = function () {
+    var el = document.getElementById("profile-list-select");
+    var idx = el.selectedIndex;
+    if (idx === 0) {
+      // clear form entry fields
+      clear()
+      return;
+    }
+    if (idx > 0) {
+      // idx 0 is empty profile name
+      loadProfile(el.options[idx].value);
+    }
+  }
+
+  document.getElementById("reset-webview").onclick = function () {
+    webview.src = "init.html";
   }
 
   document.getElementById("profile-load-button").onclick = function () {
     var name = getTextValue("profile_name").trim();
     if (name.length > 0) {
       loadProfile(name);
+      updateProfileList();
     }
   }
 
@@ -203,7 +294,7 @@ onload = function () {
     console.log(document.getElementById("redirect_uri").value);
     var uri = getLoginURI();
     if (uri === "") {
-      document.getElementById("message").innerHTML = "Redirect URI, client id, and authorization endpoint must be set";
+      document.getElementById("message").innerHTML = "Redirect URI, response type, client id, and authorization endpoint must be set";
     } else {
       saveProfile('latest');
       console.log(uri);
@@ -434,6 +525,7 @@ onload = function () {
   server.start();
   // load parameters if set previously
   loadProfile('latest');
+  updateProfileList();
 
   chrome.app.window.onClosed.addListener(function () {
     server.stop();
